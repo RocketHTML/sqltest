@@ -1,0 +1,64 @@
+/* filename: mk_boat_club.psql */
+
+/* Set some key variables */
+\set DB cosc251
+
+/* Connect to your database */
+\c :DB
+
+/* Remove tables if they already exist */
+DROP TABLE reservation; 
+DROP TABLE sailor; 
+DROP TABLE boat; 
+DROP DOMAIN SailorRating;
+DROP DOMAIN BoatColor;
+DROP SEQUENCE id_seq;
+DROP SEQUENCE sid_seq;
+DROP SEQUENCE bid_seq;
+
+create domain SailorRating as integer
+	check (value between 1 and 15); 
+
+create domain BoatColor as varchar(6)
+	check (value in ('green', 'red', 'blue', 'white'));
+
+/* Create the three tables */
+create sequence sid_seq;
+create table sailor(
+	sid integer PRIMARY KEY DEFAULT nextval('sid_seq'), 
+	sname varchar(40), 
+	rating SailorRating,
+	age real
+);  
+ALTER SEQUENCE sid_seq OWNED BY sailor.id;
+
+create sequence bid_seq;
+create table boat(
+	bid integer PRIMARY KEY DEFAULT nextval('bid_seq'), 
+	bname varchar(40), 
+	color BoatColor
+);
+ALTER SEQUENCE bid_seq OWNED BY boat.id;
+
+create table reservation(
+	sid integer references sailor(sid), 
+	bid integer references boat(bid), 
+	rdate date,
+	PRIMARY KEY(sid, bid, rdate)
+); 
+
+/* Now, load the tables with data */
+\copy sailor from 'sailor.txt'
+\copy boat from 'boat.txt'
+\copy reservation from 'reservation.txt'
+
+/* Now, run a couple of queries */
+select * from sailor; 
+select * from boat; 
+select * from reservation; 
+
+/* Now, describe the tables */
+\d sailor 
+\d boat 
+\d reservation
+
